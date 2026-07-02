@@ -132,7 +132,8 @@ function handleRegister(data) {
     data.grade || '',
     data.school || '',
     data.parentName || '',
-    data.phone || '',
+    // Thêm dấu nháy đơn trước SĐT để Google Sheet hiểu là dạng Text, không bị mất số 0
+    data.phone ? "'" + data.phone : '',
     data.timeSlot || '',
     data.goal || '',
     data.note || ''
