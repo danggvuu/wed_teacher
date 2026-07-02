@@ -183,12 +183,12 @@ export default function TeacherDetail() {
             stars: parseInt(t['Số sao']) || 5
           })));
         } else {
-          setTestimonials(mockTestimonials);
+          setTestimonials([]);
         }
       } catch (err) {
         console.error("Lỗi khi tải thông tin", err);
         setTeacher(mockTeacher);
-        setTestimonials(mockTestimonials);
+        setTestimonials([]);
       } finally {
         setLoading(false);
       }
@@ -371,10 +371,10 @@ export default function TeacherDetail() {
 
                 <motion.div variants={staggerItem} className="prose text-slate-600">
                   <p className="mb-4 leading-relaxed">
-                    Với phương pháp giảng dạy hiện đại, trực quan, {teacher['Tên']} luôn biến những khái niệm Toán học phức tạp trở nên đơn giản và dễ hiểu nhất đối với từng học sinh.
+                    Với tư duy đổi mới và sự tận tâm, {teacher['Tên']} tập trung vào việc khơi dậy niềm đam mê học Toán của các em. Thay vì học vẹt, học sinh sẽ được hướng dẫn để hiểu sâu bản chất, từ đó tự tin giải quyết mọi dạng bài tập.
                   </p>
                   <p className="leading-relaxed">
-                    Triết lý: <strong className="text-slate-900">"Không có học sinh yếu, chỉ có học sinh chưa tìm đúng phương pháp."</strong>
+                    Triết lý: <strong className="text-slate-900">"Đồng hành cùng học sinh vượt qua mọi giới hạn bản thân."</strong>
                   </p>
                 </motion.div>
 
@@ -574,6 +574,7 @@ export default function TeacherDetail() {
         </section>
 
         {/* ==================== ĐÁNH GIÁ (TESTIMONIALS) ==================== */}
+        {testimonials.length > 0 && (
         <section id="danh-gia" className="py-24 bg-white relative">
           <div className="container mx-auto px-4 max-w-6xl">
             <motion.div
@@ -651,6 +652,7 @@ export default function TeacherDetail() {
             </div>
           </div>
         </section>
+        )}
 
         {/* ==================== FAQ ==================== */}
         <section className="py-24 bg-slate-50">
