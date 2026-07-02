@@ -1,10 +1,11 @@
 import { cn } from "../../utils/cn";
 
-export function Card({ className, children, ...props }) {
+export function Card({ className, glass, children, ...props }) {
   return (
     <div
       className={cn(
-        "rounded-xl border border-slate-200 bg-white text-slate-950 shadow-sm",
+        "rounded-2xl border border-slate-200/80 bg-white text-slate-950 shadow-sm card-hover",
+        glass && "glass-card",
         className
       )}
       {...props}

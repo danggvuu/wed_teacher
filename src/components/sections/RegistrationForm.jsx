@@ -1,15 +1,34 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { useForm } from 'react-hook-form';
 import { registerClass } from '../../services/api';
 import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
-import { CheckCircle2, AlertCircle } from 'lucide-react';
+import { CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
 import { motion } from 'framer-motion';
+import confetti from 'canvas-confetti';
 
 export function RegistrationForm({ teacher }) {
   const { register, handleSubmit, formState: { errors }, reset } = useForm();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitStatus, setSubmitStatus] = useState(null); // 'success' or 'error'
+  const [submitStatus, setSubmitStatus] = useState(null);
+
+  const fireConfetti = useCallback(() => {
+    const defaults = {
+      spread: 60,
+      ticks: 80,
+      gravity: 1.2,
+      decay: 0.94,
+      startVelocity: 25,
+      colors: ['#3b82f6', '#8b5cf6', '#10b981', '#f59e0b', '#ec4899'],
+    };
+
+    confetti({ ...defaults, particleCount: 30, origin: { x: 0.3, y: 0.7 } });
+    confetti({ ...defaults, particleCount: 30, origin: { x: 0.7, y: 0.7 } });
+
+    setTimeout(() => {
+      confetti({ ...defaults, particleCount: 20, origin: { x: 0.5, y: 0.6 }, spread: 80 });
+    }, 150);
+  }, []);
 
   const onSubmit = async (data) => {
     setIsSubmitting(true);
@@ -22,6 +41,8 @@ export function RegistrationForm({ teacher }) {
       await registerClass(payload);
       setSubmitStatus('success');
       reset();
+      // Fire confetti after a small delay for the success animation to start
+      setTimeout(fireConfetti, 300);
     } catch (error) {
       console.error(error);
       setSubmitStatus('error');
@@ -32,21 +53,60 @@ export function RegistrationForm({ teacher }) {
 
   if (submitStatus === 'success') {
     return (
-      <motion.div 
-        initial={{ opacity: 0, scale: 0.95 }}
+      <motion.div
+        initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
-        className="bg-green-50 rounded-xl p-8 text-center"
+        transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+        className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl p-10 text-center border border-green-100"
       >
-        <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-          <CheckCircle2 className="w-8 h-8 text-green-600" />
-        </div>
-        <h3 className="text-2xl font-bold text-slate-900 mb-2">Đăng ký thành công!</h3>
-        <p className="text-slate-600 mb-6">
+        <motion.div
+          initial={{ scale: 0 }}
+          animate={{ scale: 1 }}
+          transition={{ type: 'spring', stiffness: 400, damping: 15, delay: 0.1 }}
+          className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6"
+        >
+          <motion.div
+            initial={{ scale: 0, rotate: -180 }}
+            animate={{ scale: 1, rotate: 0 }}
+            transition={{ type: 'spring', stiffness: 300, damping: 15, delay: 0.25 }}
+          >
+            <CheckCircle2 className="w-10 h-10 text-green-600" />
+          </motion.div>
+        </motion.div>
+
+        <motion.h3
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.35 }}
+          className="text-2xl font-bold text-slate-900 mb-3"
+        >
+          Đăng ký thành công! 🎉
+        </motion.h3>
+        <motion.p
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.45 }}
+          className="text-slate-600 mb-4 max-w-md mx-auto"
+        >
           Cảm ơn phụ huynh đã đăng ký. Thầy/Cô sẽ liên hệ trong thời gian sớm nhất để tư vấn chi tiết.
-        </p>
-        <Button onClick={() => setSubmitStatus(null)} variant="outline">
-          Đăng ký thêm học sinh khác
-        </Button>
+        </motion.p>
+        <motion.p
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.55 }}
+          className="text-sm text-slate-500 mb-8"
+        >
+          💬 Nếu cần gấp, phụ huynh có thể liên hệ qua Zalo để được hỗ trợ nhanh hơn.
+        </motion.p>
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.6 }}
+        >
+          <Button onClick={() => setSubmitStatus(null)} variant="outline">
+            Đăng ký thêm học sinh khác
+          </Button>
+        </motion.div>
       </motion.div>
     );
   }
@@ -54,10 +114,14 @@ export function RegistrationForm({ teacher }) {
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
       {submitStatus === 'error' && (
-        <div className="p-4 bg-red-50 text-red-600 rounded-lg flex items-center">
-          <AlertCircle className="w-5 h-5 mr-2 flex-shrink-0" />
-          <p>Có lỗi xảy ra khi gửi đăng ký. Vui lòng thử lại hoặc liên hệ qua Zalo/SĐT.</p>
-        </div>
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="p-4 bg-red-50 text-red-600 rounded-xl flex items-center border border-red-100"
+        >
+          <AlertCircle className="w-5 h-5 mr-3 flex-shrink-0" />
+          <p className="text-sm">Có lỗi xảy ra khi gửi đăng ký. Vui lòng thử lại hoặc liên hệ qua Zalo/SĐT.</p>
+        </motion.div>
       )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -67,7 +131,7 @@ export function RegistrationForm({ teacher }) {
           {...register("studentName", { required: "Vui lòng nhập họ tên học sinh" })}
           error={errors.studentName?.message}
         />
-        
+
         <div className="grid grid-cols-2 gap-4">
           <Input
             label="Lớp *"
@@ -88,12 +152,12 @@ export function RegistrationForm({ teacher }) {
           {...register("parentName", { required: "Vui lòng nhập tên phụ huynh" })}
           error={errors.parentName?.message}
         />
-        
+
         <Input
           label="Số điện thoại *"
           type="tel"
           placeholder="Nhập số điện thoại liên hệ"
-          {...register("phone", { 
+          {...register("phone", {
             required: "Vui lòng nhập số điện thoại",
             pattern: {
               value: /(84|0[3|5|7|8|9])+([0-9]{8})\b/,
@@ -104,26 +168,26 @@ export function RegistrationForm({ teacher }) {
         />
       </div>
 
-      <div className="space-y-4">
+      <div className="space-y-5">
         <Input
           label="Khung giờ học mong muốn"
           placeholder="VD: Tối thứ 2, 4, 6 hoặc Cuối tuần"
           {...register("timeSlot")}
         />
 
-        <div className="space-y-1">
+        <div className="space-y-1.5">
           <label className="block text-sm font-medium text-slate-700">Mục tiêu học tập</label>
           <textarea
-            className="flex w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-[80px]"
+            className="flex w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm placeholder:text-slate-400 focus:outline-none focus:border-blue-500 input-glow min-h-[90px] resize-none"
             placeholder="VD: Cải thiện điểm số, Luyện thi đại học..."
             {...register("goal")}
           />
         </div>
 
-        <div className="space-y-1">
+        <div className="space-y-1.5">
           <label className="block text-sm font-medium text-slate-700">Ghi chú thêm</label>
           <textarea
-            className="flex w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-[80px]"
+            className="flex w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm placeholder:text-slate-400 focus:outline-none focus:border-blue-500 input-glow min-h-[90px] resize-none"
             placeholder="Các yêu cầu hoặc lưu ý khác..."
             {...register("note")}
           />
@@ -131,11 +195,18 @@ export function RegistrationForm({ teacher }) {
       </div>
 
       <Button type="submit" className="w-full" size="lg" disabled={isSubmitting}>
-        {isSubmitting ? 'Đang gửi đăng ký...' : 'Xác nhận Đăng ký học'}
+        {isSubmitting ? (
+          <span className="flex items-center gap-2">
+            <Loader2 className="w-5 h-5 animate-spin" />
+            Đang gửi đăng ký...
+          </span>
+        ) : (
+          'Xác nhận Đăng ký học'
+        )}
       </Button>
-      
-      <p className="text-xs text-center text-slate-500 mt-4">
-        Thông tin của bạn sẽ được bảo mật và chỉ dùng cho mục đích xếp lớp.
+
+      <p className="text-xs text-center text-slate-400 mt-4">
+        🔒 Thông tin của bạn sẽ được bảo mật và chỉ dùng cho mục đích xếp lớp.
       </p>
     </form>
   );
