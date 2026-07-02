@@ -32,7 +32,7 @@ export default function Home() {
 
         if (data.length === 1) {
           // Nếu chỉ có 1 giáo viên, chuyển thẳng sang trang chi tiết
-          navigate(`/giao-vien/${data[0].ID}`);
+          navigate(`/giao-vien/${data[0].ID || 'demo'}`);
         } else {
           setTeachers(data);
           setLoading(false);
