@@ -79,8 +79,9 @@ function handleGetTeachers() {
   
   for (let i = 1; i < data.length; i++) {
     const row = data[i];
-    // Chỉ lấy giáo viên có trạng thái "Hiện"
-    if (row[14] && row[14].toString().toLowerCase() !== 'ẩn') {
+    const status = row[14] ? row[14].toString().toLowerCase().trim() : '';
+    // Lấy giáo viên nếu trạng thái không phải là "ẩn" (bỏ trống = hiện)
+    if (status !== 'ẩn') {
       let teacher = {};
       headers.forEach((header, index) => {
         teacher[header] = row[index];
@@ -103,7 +104,9 @@ function handleGetTeacher(slug) {
   
   for (let i = 1; i < data.length; i++) {
     const row = data[i];
-    if (row[0] === slug && row[14].toString().toLowerCase() !== 'ẩn') {
+    const status = row[14] ? row[14].toString().toLowerCase().trim() : '';
+    // Fix: Chuyển id trong sheet về string để so sánh
+    if (row[0] !== undefined && row[0].toString() === slug.toString() && status !== 'ẩn') {
       let teacher = {};
       headers.forEach((header, index) => {
         teacher[header] = row[index];

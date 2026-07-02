@@ -18,14 +18,14 @@ export default function Home() {
     async function loadTeachers() {
       try {
         const response = await getTeachers();
-        
+
         // Mock data nếu chưa có API thật hoặc trả về rỗng
         const data = response?.data && response.data.length > 0 ? response.data : [
           {
             ID: 'co-hoa-toan',
             'Tên': 'Cô [PLACEHOLDER Tên]',
             'Môn dạy': 'Toán cấp 2, cấp 3',
-            'Kinh nghiệm': '10+ năm kinh nghiệm',
+            'Kinh nghiệm': '20+ năm kinh nghiệm',
             'Ảnh': 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=800'
           }
         ];
@@ -45,14 +45,14 @@ export default function Home() {
             ID: 'co-hoa-toan',
             'Tên': 'Cô [PLACEHOLDER Tên]',
             'Môn dạy': 'Toán cấp 2, cấp 3',
-            'Kinh nghiệm': '10+ năm kinh nghiệm',
+            'Kinh nghiệm': '20+ năm kinh nghiệm',
             'Ảnh': 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=800'
           }
         ];
         navigate(`/giao-vien/${fallbackData[0].ID}`);
       }
     }
-    
+
     loadTeachers();
   }, [navigate]);
 
@@ -67,7 +67,7 @@ export default function Home() {
   return (
     <div className="min-h-screen flex flex-col bg-slate-50">
       <Navbar />
-      
+
       <main className="flex-1 container mx-auto px-4 py-12">
         <div className="text-center mb-12">
           <h1 className="text-4xl md:text-5xl font-bold text-slate-900 mb-4 tracking-tight">Đội ngũ Giáo viên Toán</h1>
@@ -80,8 +80,8 @@ export default function Home() {
           {teachers.map((teacher, idx) => (
             <Card key={idx} className="overflow-hidden hover:shadow-lg transition-shadow group">
               <div className="h-48 overflow-hidden bg-slate-200">
-                <img 
-                  src={teacher['Ảnh'] || 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=800'} 
+                <img
+                  src={teacher['Ảnh'] || 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=800'}
                   alt={teacher['Tên']}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                 />
@@ -98,8 +98,8 @@ export default function Home() {
                     <span>{teacher['Kinh nghiệm']}</span>
                   </div>
                 </div>
-                <Button 
-                  className="w-full justify-between" 
+                <Button
+                  className="w-full justify-between"
                   onClick={() => navigate(`/giao-vien/${teacher.ID}`)}
                 >
                   <span>Xem chi tiết lớp học</span>

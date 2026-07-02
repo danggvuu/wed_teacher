@@ -10,7 +10,7 @@ export function Footer() {
               <div className="bg-blue-600 p-1.5 rounded-lg">
                 <BookOpen className="w-5 h-5 text-white" />
               </div>
-              <span className="font-bold text-xl text-white tracking-tight">Lớp Toán Uy Tín</span>
+              <span className="font-bold text-xl text-white tracking-tight">Lớp Toán </span>
             </div>
             <p className="text-sm text-slate-400 max-w-xs leading-relaxed">
               Đồng hành cùng các em học sinh trên con đường chinh phục môn Toán, tự tin đỗ đạt vào các trường điểm.
@@ -22,7 +22,7 @@ export function Footer() {
             <ul className="space-y-3.5 text-sm">
               <li className="flex items-start space-x-3 group">
                 <Phone className="w-4 h-4 text-blue-400 mt-0.5 group-hover:text-blue-300 transition-colors" />
-                <span className="group-hover:text-slate-200 transition-colors">[PLACEHOLDER - SĐT]</span>
+                <span className="group-hover:text-slate-200 transition-colors">0389191058</span>
               </li>
               <li className="flex items-start space-x-3 group">
                 <Mail className="w-4 h-4 text-blue-400 mt-0.5 group-hover:text-blue-300 transition-colors" />
@@ -30,7 +30,7 @@ export function Footer() {
               </li>
               <li className="flex items-start space-x-3 group">
                 <MapPin className="w-4 h-4 text-blue-400 mt-0.5 group-hover:text-blue-300 transition-colors" />
-                <span className="group-hover:text-slate-200 transition-colors">[PLACEHOLDER - Địa chỉ]</span>
+                <span className="group-hover:text-slate-200 transition-colors">Bản liên hà 5</span>
               </li>
             </ul>
           </div>
@@ -47,7 +47,7 @@ export function Footer() {
         </div>
 
         <div className="border-t border-slate-800 mt-14 pt-8 text-center text-sm text-slate-500">
-          <p>&copy; {new Date().getFullYear()} Lớp Toán Uy Tín. Tất cả quyền được bảo lưu.</p>
+          <p>&copy; {new Date().getFullYear()} Lớp Toán. Tất cả quyền được bảo lưu.</p>
         </div>
       </div>
     </footer>

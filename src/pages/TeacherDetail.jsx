@@ -595,7 +595,7 @@ export default function TeacherDetail() {
                   <Card glass className="border-slate-100">
                     <CardContent className="p-7">
                       <div className="flex gap-0.5 mb-4">
-                        {[0,1,2,3,4].map(s => <Star key={s} className="w-4 h-4 text-yellow-400 fill-yellow-400" />)}
+                        {[0, 1, 2, 3, 4].map(s => <Star key={s} className="w-4 h-4 text-yellow-400 fill-yellow-400" />)}
                       </div>
                       <p className="text-slate-600 italic mb-6 leading-relaxed">"{testimonials[currentTestimonial].content}"</p>
                       <div className="flex items-center gap-3">
@@ -717,16 +717,16 @@ export default function TeacherDetail() {
 
 const mockTeacher = {
   ID: 'demo',
-  'Tên': 'Thầy/Cô [PLACEHOLDER]',
+  'Tên': 'Nguyễn Thị Hồng Thanh',
   'Ảnh': 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=800',
-  'Môn dạy': '[PLACEHOLDER - Môn dạy]',
-  'Cấp lớp': '[PLACEHOLDER - Cấp lớp]',
-  'Kinh nghiệm': '[PLACEHOLDER - Năm kinh nghiệm]',
-  'Bằng cấp': '[PLACEHOLDER - Bằng cấp]',
+  'Môn dạy': 'Toán',
+  'Cấp lớp': 'Lớp 9-12',
+  'Kinh nghiệm': '20',
+  'Bằng cấp': 'Thạc Sĩ',
   'Thành tích': '[PLACEHOLDER - Thành tích]',
   'Học phí': '[PLACEHOLDER - Học phí]',
   'Lịch dạy': '[PLACEHOLDER - Lịch dạy]',
-  'Địa điểm': '[PLACEHOLDER - Địa điểm]',
-  'SĐT': '0123456789',
-  'Zalo': '0123456789',
+  'Địa điểm': 'Bản liên hà 5, Xã Bảo Hà',
+  'SĐT': '0389191058',
+  'Zalo': '0389191058',
 };
