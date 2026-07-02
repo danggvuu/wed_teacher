@@ -53,6 +53,18 @@ export const getRegistrations = async (token) => {
   return apiCall('GET', 'getRegistrations', { token });
 };
 
+export const updateRegistrationStatus = async (token, rowId, status) => {
+  return apiCall('POST', 'updateRegistrationStatus', { token, rowId, status });
+};
+
+export const getSchedule = async (teacherId) => {
+  return apiCall('GET', 'getSchedule', { teacherId });
+};
+
+export const getTestimonials = async (teacherId) => {
+  return apiCall('GET', 'getTestimonials', { teacherId });
+};
+
 export const addTeacher = async (token, data) => {
   return apiCall('POST', 'addTeacher', { token, data });
 };

@@ -5,7 +5,7 @@ import { Navbar } from '../components/layout/Navbar';
 import { Footer } from '../components/layout/Footer';
 import { FloatingContact } from '../components/layout/FloatingContact';
 import { RegistrationForm } from '../components/sections/RegistrationForm';
-import { getTeacher } from '../services/api';
+import { getTeacher, getTestimonials } from '../services/api';
 import { Card, CardContent } from '../components/ui/Card';
 import {
   Award, BookOpen, Clock, MapPin, Users, CheckCircle2,
@@ -104,10 +104,13 @@ function FAQItem({ question, answer, isOpen, onClick }) {
 }
 
 /* ========== Star Rating with Fill Animation ========== */
-function AnimatedStars({ inView }) {
+function AnimatedStars({ inView, count = 5 }) {
+  // Đảm bảo count hợp lệ từ 1-5
+  const validCount = Math.max(1, Math.min(5, count));
+  
   return (
     <div className="flex gap-0.5">
-      {[0, 1, 2, 3, 4].map((i) => (
+      {Array.from({ length: validCount }).map((_, i) => (
         <motion.div
           key={i}
           initial={{ scale: 0, opacity: 0 }}
@@ -129,7 +132,7 @@ function TestimonialCard({ item }) {
   return (
     <Card glass className="h-full border-slate-100" ref={testimonialRef}>
       <CardContent className="p-7">
-        <AnimatedStars inView={isInView} />
+        <AnimatedStars inView={isInView} count={item.stars || 5} />
         <p className="text-slate-600 italic mt-5 mb-6 leading-relaxed">"{item.content}"</p>
         <div className="flex items-center gap-3">
           <div className="avatar-gradient-ring">
@@ -156,24 +159,41 @@ export default function TeacherDetail() {
   const [openFAQ, setOpenFAQ] = useState(0);
   const [currentTestimonial, setCurrentTestimonial] = useState(0);
   const [showBackToTop, setShowBackToTop] = useState(false);
+  const [testimonials, setTestimonials] = useState([]);
 
   useEffect(() => {
-    async function loadTeacher() {
+    async function loadData() {
       try {
-        const response = await getTeacher(slug);
-        if (response?.data) {
-          setTeacher(response.data);
+        const [teacherRes, testimonialsRes] = await Promise.all([
+          getTeacher(slug),
+          getTestimonials(slug).catch(() => ({ data: [] }))
+        ]);
+        
+        if (teacherRes?.data) {
+          setTeacher(teacherRes.data);
         } else {
           setTeacher(mockTeacher);
+        }
+
+        if (testimonialsRes?.data && testimonialsRes.data.length > 0) {
+          setTestimonials(testimonialsRes.data.map(t => ({
+            content: t['Nội dung'] || '',
+            author: t['Tên'] || '',
+            detail: t['Chi tiết'] || '',
+            stars: parseInt(t['Số sao']) || 5
+          })));
+        } else {
+          setTestimonials(mockTestimonials);
         }
       } catch (err) {
         console.error("Lỗi khi tải thông tin", err);
         setTeacher(mockTeacher);
+        setTestimonials(mockTestimonials);
       } finally {
         setLoading(false);
       }
     }
-    loadTeacher();
+    loadData();
   }, [slug]);
 
   useEffect(() => {
@@ -184,11 +204,7 @@ export default function TeacherDetail() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const testimonials = [
-    { content: "[PLACEHOLDER - Review 1: 'Cô dạy rất nhiệt tình, con tôi từ sợ môn Toán giờ đã thích học và điểm cải thiện rõ rệt.']", author: "Phụ huynh em Linh", detail: "Lớp 9" },
-    { content: "[PLACEHOLDER - Review 2: 'Bài giảng của thầy rất dễ hiểu, có nhiều mẹo giải nhanh giúp em tiết kiệm thời gian làm bài thi.']", author: "Học sinh Minh", detail: "Lớp 12" },
-    { content: "[PLACEHOLDER - Review 3: 'Lớp học không quá đông nên cô kèm cặp sát sao, bài tập về nhà được chấm chữa chi tiết.']", author: "Phụ huynh em Nam", detail: "Lớp 6" },
-  ];
+
 
   const faqs = [
     { q: "Lớp học có bao nhiêu bạn?", a: "Mỗi lớp từ 5 – 8 bạn để đảm bảo giáo viên có thể kèm sát từng em. Ngoài ra có hình thức 1 kèm 1 cho học sinh cần bổ sung chuyên sâu." },
@@ -716,17 +732,24 @@ export default function TeacherDetail() {
 }
 
 const mockTeacher = {
-  ID: 'demo',
-  'Tên': 'Nguyễn Thị Hồng Thanh',
-  'Ảnh': 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=800',
-  'Môn dạy': 'Toán',
-  'Cấp lớp': 'Lớp 9-12',
-  'Kinh nghiệm': '20',
-  'Bằng cấp': 'Thạc Sĩ',
-  'Thành tích': '[PLACEHOLDER - Thành tích]',
-  'Học phí': '[PLACEHOLDER - Học phí]',
-  'Lịch dạy': '[PLACEHOLDER - Lịch dạy]',
-  'Địa điểm': 'Bản liên hà 5, Xã Bảo Hà',
-  'SĐT': '0389191058',
-  'Zalo': '0389191058',
+  "Tên": "Thầy / Cô [Tên]",
+  "Môn dạy": "[Môn]",
+  "Cấp lớp": "[Cấp lớp]",
+  "Kinh nghiệm": "[X] năm",
+  "Bằng cấp": "[Bằng cấp]",
+  "Thành tích": "[Thành tích nổi bật]",
+  "Học phí": "[Học phí]",
+  "Lịch dạy": "[Lịch dạy]",
+  "Địa điểm": "[Địa điểm]",
+  "SĐT": "[SĐT]",
+  "Zalo": "[Zalo]",
+  "Facebook": "[Link Facebook]"
 };
+
+const mockTestimonials = [
+  { content: "[PLACEHOLDER - Review 1: 'Cô dạy rất nhiệt tình, con tôi từ sợ môn Toán giờ đã thích học và điểm cải thiện rõ rệt.']", author: "Phụ huynh em Linh", detail: "Lớp 9", stars: 5 },
+  { content: "[PLACEHOLDER - Review 2: 'Bài giảng của thầy rất dễ hiểu, có nhiều mẹo giải nhanh giúp em tiết kiệm thời gian làm bài thi.']", author: "Học sinh Minh", detail: "Lớp 12", stars: 5 },
+  { content: "[PLACEHOLDER - Review 3: 'Lớp học không quá đông nên cô kèm cặp sát sao, bài tập về nhà được chấm chữa chi tiết.']", author: "Phụ huynh em Nam", detail: "Lớp 6", stars: 5 },
+];
+
+/* ========== Helper Animation Components ========== */

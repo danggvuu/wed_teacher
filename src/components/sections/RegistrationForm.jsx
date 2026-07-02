@@ -1,16 +1,40 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
-import { registerClass } from '../../services/api';
+import { registerClass, getSchedule } from '../../services/api';
 import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
-import { CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
+import { CheckCircle2, AlertCircle, Loader2, Calendar } from 'lucide-react';
 import { motion } from 'framer-motion';
 import confetti from 'canvas-confetti';
 
 export function RegistrationForm({ teacher }) {
-  const { register, handleSubmit, formState: { errors }, reset } = useForm();
+  const { register, handleSubmit, formState: { errors }, reset, setValue, watch } = useForm();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState(null);
+  const [schedules, setSchedules] = useState([]);
+  const [loadingSchedules, setLoadingSchedules] = useState(true);
+
+  const selectedTimeSlot = watch("timeSlot");
+
+  useEffect(() => {
+    async function loadSchedules() {
+      if (!teacher || !teacher['ID']) {
+        setLoadingSchedules(false);
+        return;
+      }
+      try {
+        const res = await getSchedule(teacher['ID']);
+        if (res?.data) {
+          setSchedules(res.data);
+        }
+      } catch (err) {
+        console.error("Lỗi khi tải lịch học", err);
+      } finally {
+        setLoadingSchedules(false);
+      }
+    }
+    loadSchedules();
+  }, [teacher]);
 
   const fireConfetti = useCallback(() => {
     const defaults = {
@@ -169,11 +193,71 @@ export function RegistrationForm({ teacher }) {
       </div>
 
       <div className="space-y-5">
-        <Input
-          label="Khung giờ học mong muốn"
-          placeholder="VD: Tối thứ 2, 4, 6 hoặc Cuối tuần"
-          {...register("timeSlot")}
-        />
+        <div className="space-y-3">
+          <label className="block text-sm font-medium text-slate-700">Khung giờ học mong muốn</label>
+          {/* Ẩn input thực sự để dùng chung với hook-form */}
+          <input type="hidden" {...register("timeSlot")} />
+          
+          {loadingSchedules ? (
+            <div className="flex items-center gap-2 text-sm text-slate-500 py-3">
+              <Loader2 className="w-4 h-4 animate-spin" /> Đang tải lịch học...
+            </div>
+          ) : schedules.length > 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {schedules.map((s, idx) => {
+                const isFull = s['Trạng thái']?.toLowerCase().includes('kín');
+                const isSelected = selectedTimeSlot === s['Mô tả'];
+                
+                return (
+                  <div 
+                    key={idx}
+                    onClick={() => {
+                      if (!isFull) {
+                        setValue('timeSlot', s['Mô tả'], { shouldValidate: true });
+                      }
+                    }}
+                    className={`
+                      relative p-4 rounded-xl border-2 transition-all cursor-pointer flex flex-col gap-1
+                      ${isFull 
+                        ? 'border-slate-100 bg-slate-50 opacity-70 cursor-not-allowed' 
+                        : isSelected 
+                          ? 'border-blue-500 bg-blue-50/50' 
+                          : 'border-slate-200 hover:border-blue-300 hover:bg-slate-50'
+                      }
+                    `}
+                  >
+                    <div className="flex items-start justify-between mb-1">
+                      <div className="flex items-center gap-2">
+                        <Calendar className={`w-4 h-4 ${isSelected ? 'text-blue-500' : 'text-slate-400'}`} />
+                        <span className={`font-semibold text-sm ${isSelected ? 'text-blue-700' : 'text-slate-700'}`}>
+                          {s['Mã Ca']}
+                        </span>
+                      </div>
+                      {isFull && (
+                        <span className="text-[10px] uppercase tracking-wider font-bold text-red-500 bg-red-100 px-2 py-0.5 rounded-full">
+                          Kín chỗ
+                        </span>
+                      )}
+                      {isSelected && !isFull && (
+                        <CheckCircle2 className="w-5 h-5 text-blue-500" />
+                      )}
+                    </div>
+                    <span className="text-sm text-slate-600 font-medium">{s['Mô tả']}</span>
+                    <span className="text-xs text-slate-500 mt-1">
+                      Sĩ số: <strong className={isFull ? 'text-red-500' : ''}>{s['Sĩ số hiện tại'] || '0'}</strong>
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <Input
+              placeholder="VD: Tối thứ 2, 4, 6 hoặc Cuối tuần"
+              onChange={(e) => setValue('timeSlot', e.target.value)}
+              value={selectedTimeSlot || ''}
+            />
+          )}
+        </div>
 
         <div className="space-y-1.5">
           <label className="block text-sm font-medium text-slate-700">Mục tiêu học tập</label>

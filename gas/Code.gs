@@ -11,13 +11,32 @@ function setup() {
   // Tạo sheet DangKy nếu chưa có
   if (!doc.getSheetByName("DangKy")) {
     const sheet = doc.insertSheet("DangKy");
-    sheet.appendRow(["Timestamp", "Tên giáo viên", "Tên học sinh", "Lớp", "Trường", "Tên phụ huynh", "SĐT", "Khung giờ mong muốn", "Mục tiêu học", "Ghi chú"]);
+    sheet.appendRow(["Timestamp", "Tên giáo viên", "Tên học sinh", "Lớp", "Trường", "Tên phụ huynh", "SĐT", "Khung giờ mong muốn", "Mục tiêu học", "Ghi chú", "Trạng thái"]);
+  } else {
+    // Thêm cột Trạng thái nếu chưa có (cập nhật sheet cũ)
+    const sheet = doc.getSheetByName("DangKy");
+    const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+    if (headers.indexOf("Trạng thái") === -1) {
+      sheet.getRange(1, headers.length + 1).setValue("Trạng thái");
+    }
   }
   
   // Tạo sheet GiaoVien nếu chưa có
   if (!doc.getSheetByName("GiaoVien")) {
     const sheet = doc.insertSheet("GiaoVien");
     sheet.appendRow(["ID", "Tên", "Ảnh", "Môn dạy", "Cấp lớp", "Kinh nghiệm", "Bằng cấp", "Thành tích", "Học phí", "Lịch dạy", "Địa điểm", "SĐT", "Zalo", "Facebook", "Trạng thái"]);
+  }
+  
+  // Tạo sheet LichHoc nếu chưa có
+  if (!doc.getSheetByName("LichHoc")) {
+    const sheet = doc.insertSheet("LichHoc");
+    sheet.appendRow(["ID_GiaoVien", "Mã Ca", "Mô tả", "Sĩ số hiện tại", "Trạng thái"]);
+  }
+  
+  // Tạo sheet DanhGia nếu chưa có
+  if (!doc.getSheetByName("DanhGia")) {
+    const sheet = doc.insertSheet("DanhGia");
+    sheet.appendRow(["ID_GiaoVien", "Tên", "Chi tiết", "Nội dung", "Số sao", "Trạng thái"]);
   }
 }
 
@@ -30,8 +49,12 @@ function doGet(e) {
       return handleGetTeachers();
     } else if (action === 'getTeacher') {
       return handleGetTeacher(e.parameter.slug);
-    } else if (action === 'getRegistrations') { // Nên dùng POST cho bảo mật, nhưng để GET cho dễ gọi cũng được nếu truyền token
+    } else if (action === 'getRegistrations') {
       return handleGetRegistrations(e.parameter.token);
+    } else if (action === 'getSchedule') {
+      return handleGetSchedule(e.parameter.teacherId);
+    } else if (action === 'getTestimonials') {
+      return handleGetTestimonials(e.parameter.teacherId);
     }
     
     return jsonResponse({status: 'error', message: 'Action không hợp lệ'}, 400);
@@ -57,6 +80,8 @@ function doPost(e) {
       return handleUpdateTeacher(postData.token, postData.data);
     } else if (action === 'deleteTeacher') {
       return handleDeleteTeacher(postData.token, postData.id);
+    } else if (action === 'updateRegistrationStatus') {
+      return handleUpdateRegistrationStatus(postData.token, postData.rowId, postData.status);
     }
     
     return jsonResponse({status: 'error', message: 'Action không hợp lệ'}, 400);
@@ -124,7 +149,7 @@ function handleRegister(data) {
   
   const timestamp = new Date();
   
-  // Row: ["Timestamp", "Tên giáo viên", "Tên học sinh", "Lớp", "Trường", "Tên phụ huynh", "SĐT", "Khung giờ mong muốn", "Mục tiêu học", "Ghi chú"]
+  // Row: ["Timestamp", "Tên giáo viên", "Tên học sinh", "Lớp", "Trường", "Tên phụ huynh", "SĐT", "Khung giờ mong muốn", "Mục tiêu học", "Ghi chú", "Trạng thái"]
   sheet.appendRow([
     timestamp,
     data.teacherName || '',
@@ -136,10 +161,62 @@ function handleRegister(data) {
     data.phone ? "'" + data.phone : '',
     data.timeSlot || '',
     data.goal || '',
-    data.note || ''
+    data.note || '',
+    'Mới' // Trạng thái mặc định
   ]);
   
   return jsonResponse({status: 'success', message: 'Đăng ký thành công'});
+}
+
+function handleGetSchedule(teacherId) {
+  const doc = SpreadsheetApp.getActiveSpreadsheet();
+  const sheet = doc.getSheetByName("LichHoc");
+  if (!sheet) return jsonResponse({status: 'success', data: []});
+  
+  const data = sheet.getDataRange().getValues();
+  if (data.length <= 1) return jsonResponse({status: 'success', data: []});
+  
+  const headers = data[0];
+  const schedules = [];
+  
+  for (let i = 1; i < data.length; i++) {
+    const row = data[i];
+    if (row[0] !== undefined && row[0].toString() === teacherId.toString()) {
+      let schedule = {};
+      headers.forEach((header, index) => {
+        schedule[header] = row[index];
+      });
+      schedules.push(schedule);
+    }
+  }
+  
+  return jsonResponse({status: 'success', data: schedules});
+}
+
+function handleGetTestimonials(teacherId) {
+  const doc = SpreadsheetApp.getActiveSpreadsheet();
+  const sheet = doc.getSheetByName("DanhGia");
+  if (!sheet) return jsonResponse({status: 'success', data: []});
+  
+  const data = sheet.getDataRange().getValues();
+  if (data.length <= 1) return jsonResponse({status: 'success', data: []});
+  
+  const headers = data[0];
+  const testimonials = [];
+  
+  for (let i = 1; i < data.length; i++) {
+    const row = data[i];
+    const status = row[5] ? row[5].toString().toLowerCase().trim() : '';
+    if (row[0] !== undefined && row[0].toString() === teacherId.toString() && status !== 'ẩn') {
+      let testimonial = {};
+      headers.forEach((header, index) => {
+        testimonial[header] = row[index];
+      });
+      testimonials.push(testimonial);
+    }
+  }
+  
+  return jsonResponse({status: 'success', data: testimonials});
 }
 
 function handleLogin(password) {
@@ -170,7 +247,7 @@ function handleGetRegistrations(token) {
   
   for (let i = data.length - 1; i >= 1; i--) { // Đảo ngược để lấy mới nhất lên đầu
     const row = data[i];
-    let reg = {};
+    let reg = { rowId: i + 1 }; // Lưu lại số thứ tự dòng để update
     headers.forEach((header, index) => {
       reg[header] = row[index];
     });
@@ -178,6 +255,26 @@ function handleGetRegistrations(token) {
   }
   
   return jsonResponse({status: 'success', data: registrations});
+}
+
+function handleUpdateRegistrationStatus(token, rowId, status) {
+  if (!verifyToken(token)) {
+    return jsonResponse({status: 'error', message: 'Unauthorized'}, 401);
+  }
+  
+  const doc = SpreadsheetApp.getActiveSpreadsheet();
+  const sheet = doc.getSheetByName("DangKy");
+  
+  const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+  const statusColIndex = headers.indexOf("Trạng thái") + 1;
+  
+  if (statusColIndex <= 0) {
+    return jsonResponse({status: 'error', message: 'Cột Trạng thái không tồn tại'}, 400);
+  }
+  
+  sheet.getRange(rowId, statusColIndex).setValue(status);
+  
+  return jsonResponse({status: 'success', message: 'Cập nhật trạng thái thành công'});
 }
 
 // Hàm tiện ích
