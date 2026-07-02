@@ -19,37 +19,26 @@ export default function Home() {
       try {
         const response = await getTeachers();
 
-        // Mock data nếu chưa có API thật hoặc trả về rỗng
-        const data = response?.data && response.data.length > 0 ? response.data : [
-          {
-            ID: 'co-hoa-toan',
-            'Tên': 'Cô [PLACEHOLDER Tên]',
-            'Môn dạy': 'Toán cấp 2, cấp 3',
-            'Kinh nghiệm': '20+ năm kinh nghiệm',
-            'Ảnh': 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=800'
-          }
-        ];
-
-        if (data.length === 1) {
-          // Nếu chỉ có 1 giáo viên, chuyển thẳng sang trang chi tiết
-          navigate(`/giao-vien/${data[0].ID || 'demo'}`);
+        if (response?.data && response.data.length > 0) {
+          setTeachers(response.data);
+          setLoading(false);
         } else {
-          setTeachers(data);
+          // API trả về rỗng, dùng dữ liệu mẫu để demo giao diện
+          setTeachers([
+            {
+              ID: '1',
+              'Tên': 'Thầy / Cô (Ví dụ)',
+              'Môn dạy': 'Toán cấp 2, cấp 3',
+              'Kinh nghiệm': 'Nhiều năm kinh nghiệm',
+              'Ảnh': 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=800'
+            }
+          ]);
           setLoading(false);
         }
       } catch (err) {
         console.error("Lỗi khi tải danh sách giáo viên", err);
-        // Fallback mockup nếu API lỗi do chưa setup
-        const fallbackData = [
-          {
-            ID: 'co-hoa-toan',
-            'Tên': 'Cô [PLACEHOLDER Tên]',
-            'Môn dạy': 'Toán cấp 2, cấp 3',
-            'Kinh nghiệm': '20+ năm kinh nghiệm',
-            'Ảnh': 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=800'
-          }
-        ];
-        navigate(`/giao-vien/${fallbackData[0].ID}`);
+        setError('Không thể kết nối đến Google Sheets. Hãy kiểm tra lại Apps Script URL.');
+        setLoading(false);
       }
     }
 
@@ -60,6 +49,16 @@ export default function Home() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50">
         <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-50 p-4">
+        <div className="bg-red-50 text-red-600 p-6 rounded-2xl max-w-lg text-center border border-red-100">
+          <p className="font-semibold">{error}</p>
+        </div>
       </div>
     );
   }
