@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getTeachers, getRegistrations, updateRegistrationStatus } from '../services/api';
+import { LogOut, Users, BookOpen, ChevronDown, Trash2 } from 'lucide-react';
+import { getTeachers, getRegistrations, updateRegistrationStatus, addTeacher, updateTeacher, deleteTeacher } from '../services/api';
 import { Button } from '../components/ui/Button';
 import { Card, CardContent } from '../components/ui/Card';
-import { LogOut, Users, BookOpen, ChevronDown } from 'lucide-react';
+import { TeacherFormModal } from '../components/admin/TeacherFormModal';
 
 export default function AdminDashboard() {
   const navigate = useNavigate();
@@ -13,6 +14,11 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(true);
   const [updatingRow, setUpdatingRow] = useState(null);
   const [statusFilter, setStatusFilter] = useState('All');
+  
+  // States for Teacher Form Modal
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedTeacher, setSelectedTeacher] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     const token = localStorage.getItem('adminToken');
@@ -56,9 +62,58 @@ export default function AdminDashboard() {
       ));
     } catch (err) {
       console.error("Lỗi cập nhật trạng thái", err);
-      alert("Cập nhật thất bại. Vui lòng thử lại.");
+      alert("Có lỗi xảy ra khi cập nhật!");
     } finally {
       setUpdatingRow(null);
+    }
+  };
+
+  const handleOpenModal = (teacher = null) => {
+    setSelectedTeacher(teacher);
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setSelectedTeacher(null);
+    setIsModalOpen(false);
+  };
+
+  const handleSubmitTeacher = async (data) => {
+    const token = localStorage.getItem('adminToken');
+    if (!token) return;
+    
+    setIsSubmitting(true);
+    try {
+      if (selectedTeacher) {
+        // Update
+        await updateTeacher(token, data);
+        setTeachers(prev => prev.map(t => t.ID === data.ID ? data : t));
+      } else {
+        // Create
+        await addTeacher(token, data);
+        setTeachers(prev => [...prev, data]);
+      }
+      handleCloseModal();
+    } catch (error) {
+      console.error('Lỗi khi lưu giáo viên:', error);
+      alert('Có lỗi xảy ra: ' + error.message);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleDeleteTeacher = async (id) => {
+    if (!window.confirm('Bạn có chắc chắn muốn Ẩn/Xóa giáo viên này khỏi hệ thống?')) return;
+    
+    const token = localStorage.getItem('adminToken');
+    if (!token) return;
+
+    try {
+      await deleteTeacher(token, id);
+      setTeachers(prev => prev.map(t => t.ID === id ? { ...t, 'Trạng thái': 'ẩn' } : t));
+    } catch (error) {
+      console.error('Lỗi khi xóa giáo viên:', error);
+      alert('Có lỗi xảy ra: ' + error.message);
     }
   };
 
@@ -198,22 +253,32 @@ export default function AdminDashboard() {
         {activeTab === 'teachers' && (
           <div>
             <div className="flex justify-end mb-4">
-              <Button>+ Thêm giáo viên</Button>
+              <Button onClick={() => handleOpenModal()}>+ Thêm giáo viên</Button>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {teachers.length > 0 ? (
                 teachers.map((t, idx) => (
-                  <Card key={idx}>
+                  <Card key={idx} className={t['Trạng thái']?.toLowerCase() === 'ẩn' ? 'opacity-50' : ''}>
                     <CardContent className="p-6">
                       <div className="flex items-center space-x-4 mb-4">
                         <img src={t['Ảnh']} alt={t['Tên']} className="w-16 h-16 rounded-full object-cover bg-slate-200" />
                         <div>
-                          <h3 className="font-bold text-slate-900">{t['Tên']}</h3>
+                          <h3 className="font-bold text-slate-900">
+                            {t['Tên']} {t['Trạng thái']?.toLowerCase() === 'ẩn' && '(Đã ẩn)'}
+                          </h3>
                           <p className="text-sm text-slate-500">{t['Môn dạy']}</p>
                         </div>
                       </div>
                       <div className="flex justify-end space-x-2">
-                        <Button variant="outline" size="sm">Sửa</Button>
+                        <Button variant="outline" size="sm" onClick={() => handleOpenModal(t)}>Sửa</Button>
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="text-red-500 hover:text-red-600 hover:bg-red-50"
+                          onClick={() => handleDeleteTeacher(t['ID'])}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
                       </div>
                     </CardContent>
                   </Card>
@@ -227,6 +292,14 @@ export default function AdminDashboard() {
           </div>
         )}
       </main>
+
+      <TeacherFormModal
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+        onSubmit={handleSubmitTeacher}
+        initialData={selectedTeacher}
+        isSubmitting={isSubmitting}
+      />
     </div>
   );
 }

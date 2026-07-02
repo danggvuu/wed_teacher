@@ -277,6 +277,62 @@ function handleUpdateRegistrationStatus(token, rowId, status) {
   return jsonResponse({status: 'success', message: 'Cập nhật trạng thái thành công'});
 }
 
+function handleAddTeacher(token, data) {
+  if (!verifyToken(token)) {
+    return jsonResponse({status: 'error', message: 'Unauthorized'}, 401);
+  }
+  const doc = SpreadsheetApp.getActiveSpreadsheet();
+  const sheet = doc.getSheetByName("GiaoVien");
+  const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+  
+  const newRow = headers.map(header => data[header] || '');
+  sheet.appendRow(newRow);
+  
+  return jsonResponse({status: 'success', message: 'Thêm giáo viên thành công'});
+}
+
+function handleUpdateTeacher(token, data) {
+  if (!verifyToken(token)) {
+    return jsonResponse({status: 'error', message: 'Unauthorized'}, 401);
+  }
+  const doc = SpreadsheetApp.getActiveSpreadsheet();
+  const sheet = doc.getSheetByName("GiaoVien");
+  const sheetData = sheet.getDataRange().getValues();
+  const headers = sheetData[0];
+  
+  for (let i = 1; i < sheetData.length; i++) {
+    if (sheetData[i][0] && sheetData[i][0].toString() === data['ID'].toString()) {
+      const updatedRow = headers.map(header => data[header] !== undefined ? data[header] : sheetData[i][headers.indexOf(header)]);
+      sheet.getRange(i + 1, 1, 1, headers.length).setValues([updatedRow]);
+      return jsonResponse({status: 'success', message: 'Cập nhật giáo viên thành công'});
+    }
+  }
+  return jsonResponse({status: 'error', message: 'Không tìm thấy giáo viên'}, 404);
+}
+
+function handleDeleteTeacher(token, id) {
+  if (!verifyToken(token)) {
+    return jsonResponse({status: 'error', message: 'Unauthorized'}, 401);
+  }
+  const doc = SpreadsheetApp.getActiveSpreadsheet();
+  const sheet = doc.getSheetByName("GiaoVien");
+  const sheetData = sheet.getDataRange().getValues();
+  const headers = sheetData[0];
+  const statusColIndex = headers.indexOf("Trạng thái") + 1;
+  
+  if (statusColIndex <= 0) {
+    return jsonResponse({status: 'error', message: 'Không tìm thấy cột Trạng thái'}, 400);
+  }
+  
+  for (let i = 1; i < sheetData.length; i++) {
+    if (sheetData[i][0] && sheetData[i][0].toString() === id.toString()) {
+      sheet.getRange(i + 1, statusColIndex).setValue('ẩn');
+      return jsonResponse({status: 'success', message: 'Đã ẩn giáo viên'});
+    }
+  }
+  return jsonResponse({status: 'error', message: 'Không tìm thấy giáo viên'}, 404);
+}
+
 // Hàm tiện ích
 function jsonResponse(data, status = 200) {
   const output = ContentService.createTextOutput(JSON.stringify(data));
