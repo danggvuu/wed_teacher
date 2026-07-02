@@ -121,6 +121,32 @@ function AnimatedStars({ inView }) {
   );
 }
 
+/* ========== Testimonial Card Component ========== */
+function TestimonialCard({ item }) {
+  const testimonialRef = useRef(null);
+  const isInView = useInView(testimonialRef, { once: true });
+
+  return (
+    <Card glass className="h-full border-slate-100" ref={testimonialRef}>
+      <CardContent className="p-7">
+        <AnimatedStars inView={isInView} />
+        <p className="text-slate-600 italic mt-5 mb-6 leading-relaxed">"{item.content}"</p>
+        <div className="flex items-center gap-3">
+          <div className="avatar-gradient-ring">
+            <div className="w-10 h-10 rounded-full bg-slate-200 flex items-center justify-center text-slate-600 font-bold text-sm">
+              {item.author.charAt(item.author.length - 1)}
+            </div>
+          </div>
+          <div>
+            <p className="font-semibold text-slate-900 text-sm">{item.author}</p>
+            <p className="text-xs text-slate-500">{item.detail}</p>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
 /* ========== Main Component ========== */
 export default function TeacherDetail() {
   const { slug } = useParams();
@@ -549,31 +575,11 @@ export default function TeacherDetail() {
               initial="hidden" whileInView="visible" viewport={{ once: true, margin: '-50px' }}
               variants={staggerContainer}
             >
-              {testimonials.map((item, i) => {
-                const testimonialRef = useRef(null);
-                const isInView = useInView(testimonialRef, { once: true });
-                return (
-                  <motion.div key={i} variants={staggerItem} ref={testimonialRef}>
-                    <Card glass className="h-full border-slate-100">
-                      <CardContent className="p-7">
-                        <AnimatedStars inView={isInView} />
-                        <p className="text-slate-600 italic mt-5 mb-6 leading-relaxed">"{item.content}"</p>
-                        <div className="flex items-center gap-3">
-                          <div className="avatar-gradient-ring">
-                            <div className="w-10 h-10 rounded-full bg-slate-200 flex items-center justify-center text-slate-600 font-bold text-sm">
-                              {item.author.charAt(item.author.length - 1)}
-                            </div>
-                          </div>
-                          <div>
-                            <p className="font-semibold text-slate-900 text-sm">{item.author}</p>
-                            <p className="text-xs text-slate-500">{item.detail}</p>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </motion.div>
-                );
-              })}
+              {testimonials.map((item, i) => (
+                <motion.div key={i} variants={staggerItem}>
+                  <TestimonialCard item={item} />
+                </motion.div>
+              ))}
             </motion.div>
 
             {/* Mobile: Carousel */}
